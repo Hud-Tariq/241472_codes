@@ -1,36 +1,39 @@
 #include <iostream>
 using namespace std;
 
+template <typename T>
 class Node {
 private:
-    int data;
-    Node* next_node;
-    Node* prev_node;
+    T data;
+    Node<T>* next_node;
+    Node<T>* prev_node;
 
 public:
-    Node(int val = 0, Node* prev = nullptr, Node* next = nullptr)
+    Node(T val = T(), Node<T>* prev = nullptr, Node<T>* next = nullptr)
         : data(val), prev_node(prev), next_node(next) {}
 
-    int retrieve() const { return data; }
-    Node* next() const { return next_node; }
-    Node* prev() const { return prev_node; }
+    T retrieve() const { return data; }
+    Node<T>* next() const { return next_node; }
+    Node<T>* prev() const { return prev_node; }
 
-    void set_next(Node* next) { next_node = next; }
-    void set_prev(Node* prev) { prev_node = prev; }
+    void set_next(Node<T>* next) { next_node = next; }
+    void set_prev(Node<T>* prev) { prev_node = prev; }
 
+    template <typename U>
     friend class List;
 };
 
+template <typename T>
 class List {
 private:
-    Node* head_node;
-    Node* tail_node;
+    Node<T>* head_node;
+    Node<T>* tail_node;
 
 public:
     List() : head_node(nullptr), tail_node(nullptr) {}
 
     ~List() {
-        for (; !empty(); ) {
+        while (!empty()) {
             pop_front();
         }
     }
@@ -39,40 +42,40 @@ public:
 
     int size() const {
         int count = 0;
-        for (Node* ptr = head_node; ptr != nullptr; ptr = ptr->next())
+        for (Node<T>* ptr = head_node; ptr != nullptr; ptr = ptr->next())
             ++count;
         return count;
     }
 
-    int front() const {
+    T front() const {
         if (empty()) {
             cerr << "Error: List is empty.\n";
-            return -1;
+            return T();
         }
         return head_node->retrieve();
     }
 
-    int end() const {
+    T end() const {
         if (empty()) {
             cerr << "Error: List is empty.\n";
-            return -1;
+            return T();
         }
         return tail_node->retrieve();
     }
 
-    Node* head() const { return head_node; }
-    Node* tail() const { return tail_node; }
+    Node<T>* head() const { return head_node; }
+    Node<T>* tail() const { return tail_node; }
 
-    int count(int val) const {
+    int count(T val) const {
         int c = 0;
-        for (Node* ptr = head_node; ptr != nullptr; ptr = ptr->next())
+        for (Node<T>* ptr = head_node; ptr != nullptr; ptr = ptr->next())
             if (ptr->retrieve() == val)
                 ++c;
         return c;
     }
 
-    void push_front(int val) {
-        Node* newNode = new Node(val, nullptr, head_node);
+    void push_front(T val) {
+        Node<T>* newNode = new Node<T>(val, nullptr, head_node);
         if (empty()) {
             tail_node = newNode;
         } else {
@@ -81,8 +84,8 @@ public:
         head_node = newNode;
     }
 
-    void push_end(int val) {
-        Node* newNode = new Node(val, tail_node, nullptr);
+    void push_end(T val) {
+        Node<T>* newNode = new Node<T>(val, tail_node, nullptr);
         if (empty()) {
             head_node = newNode;
         } else {
@@ -91,45 +94,50 @@ public:
         tail_node = newNode;
     }
 
-    int pop_front() {
+    T pop_front() {
         if (empty()) {
             cerr << "Error: Cannot pop from empty list.\n";
-            return -1;
+            return T();
         }
-        Node* temp = head_node;
-        int val = temp->retrieve();
+        Node<T>* temp = head_node;
+        T val = temp->retrieve();
         head_node = head_node->next();
+
         if (head_node)
             head_node->set_prev(nullptr);
         else
             tail_node = nullptr;
+
         delete temp;
         return val;
     }
 
-    int pop_end() {
+    T pop_end() {
         if (empty()) {
             cerr << "Error: Cannot pop from empty list.\n";
-            return -1;
+            return T();
         }
-        Node* temp = tail_node;
-        int val = temp->retrieve();
+        Node<T>* temp = tail_node;
+        T val = temp->retrieve();
         tail_node = tail_node->prev();
+
         if (tail_node)
             tail_node->set_next(nullptr);
         else
             head_node = nullptr;
+
         delete temp;
         return val;
     }
 
-    int erase(int val) {
+    int erase(T val) {
         if (empty()) return 0;
         int removed = 0;
 
-        for (Node* ptr = head_node; ptr != nullptr; ) {
+        for (Node<T>* ptr = head_node; ptr != nullptr; ) {
             if (ptr->retrieve() == val) {
-                Node* temp = ptr;
+                Node<T>* temp = ptr;
+
                 if (ptr->prev())
                     ptr->prev()->set_next(ptr->next());
                 else
@@ -152,21 +160,21 @@ public:
 
     void display() const {
         cout << "[ ";
-        for (Node* ptr = head_node; ptr != nullptr; ptr = ptr->next())
+        for (Node<T>* ptr = head_node; ptr != nullptr; ptr = ptr->next())
             cout << ptr->retrieve() << " ";
         cout << "]\n";
     }
 
     void display_reverse() const {
         cout << "[ ";
-        for (Node* ptr = tail_node; ptr != nullptr; ptr = ptr->prev())
+        for (Node<T>* ptr = tail_node; ptr != nullptr; ptr = ptr->prev())
             cout << ptr->retrieve() << " ";
         cout << "]\n";
     }
 };
 
 int main() {
-    List l;
+    List<int> l;
     l.push_front(10);
     l.push_end(20);
     l.push_end(30);
