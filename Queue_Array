@@ -1,0 +1,74 @@
+#include <iostream>
+using namespace std;
+
+class Queue {
+private:
+    int queue_size;
+    int ifront;
+    int iback;
+    int array_capacity;
+    int* array;
+
+public:
+    Queue(int n = 10)
+        : queue_size(0),
+          ifront(0),
+          iback(-1),
+          array_capacity(n),
+          array(new int[n]) {}
+
+    ~Queue() {
+        delete[] array;
+    }
+
+    bool empty() const {
+        return (queue_size == 0);
+    }
+
+    bool full() const {
+        return (queue_size == array_capacity);
+    }
+
+    int front() const {
+        if (empty()) throw underflow_error("Queue underflow");
+        return array[ifront];
+    }
+
+    void push(int obj) {
+        if (full()) throw overflow_error("Queue overflow");
+
+        iback = (iback + 1) % array_capacity;
+        array[iback] = obj;
+        ++queue_size;
+    }
+
+    int pop() {
+        if (empty()) throw underflow_error("Queue underflow");
+
+        int val = array[ifront];
+        ifront = (ifront + 1) % array_capacity;
+        --queue_size;
+        return val;
+    }
+};
+
+int main() {
+    Queue q(5);
+
+    q.push(1);
+    q.push(2);
+    q.push(3);
+
+    cout << q.pop() << endl;  // 1
+    cout << q.front() << endl; // 2
+
+    q.push(4);
+    q.push(5);
+
+    cout << q.pop() << endl; // 2
+    q.push(6);               // circular wrap works
+
+    while (!q.empty()) {
+        cout << q.pop() << " ";
+    }
+}
