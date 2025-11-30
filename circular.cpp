@@ -1,261 +1,210 @@
 #include <iostream>
 using namespace std;
 
+template <typename T>
 class Node {
 private:
-    int value;
-    Node* next_node;
+    T data;
+    Node<T>* next_node;
+    Node<T>* prev_node;
 
 public:
-    Node(int val = 0, Node* next = nullptr)
-        : value(val), next_node(next) {
-    }
+    Node(T val = T(), Node<T>* prev = nullptr, Node<T>* next = nullptr)
+        : data(val), prev_node(prev), next_node(next) {}
 
-    int retrieve() const { return value; }
-    Node* next() const { return next_node; }
-    void set_next(Node* next) { next_node = next; }
+    T retrieve() const { return data; }
+    Node<T>* next() const { return next_node; }
+    Node<T>* prev() const { return prev_node; }
 
-    friend class CList;
+    void set_next(Node<T>* next) { next_node = next; }
+    void set_prev(Node<T>* prev) { prev_node = prev; }
+
+    template <typename U>
+    friend class CircularList;
 };
 
-class CList {
+template <typename T>
+class CircularList {
 private:
-    Node* list_tail;
+    Node<T>* head_node;
 
 public:
-    CList() : list_tail(nullptr) {}
+    CircularList() : head_node(nullptr) {}
 
-    ~CList() {
-        while (!empty())
-            pop_front();
-    }
-
-    bool empty() const {
-        return (list_tail == nullptr);
-    }
-
-    Node* head() const {
-        if (empty()) return nullptr;
-        return list_tail->next();
-    }
-
-    Node* tail() const {
-        return list_tail;
-    }
-
-    int front() const {
-        if (empty()) {
-            cerr << "List is empty! Cannot access front element.\n";
-            return -1;
-        }
-        return head()->retrieve();
-    }
-
-    int end() const {
-        if (empty()) {
-            cerr << "List is empty! Cannot access end element.\n";
-            return -1;
-        }
-        return tail()->retrieve();
-    }
-
-    void push_front(int n) {
-        if (empty()) {
-            Node* new_node = new Node(n);
-            new_node->set_next(new_node);
-            list_tail = new_node;
-        }
-        else {
-            Node* old_head = list_tail->next();
-            Node* new_node = new Node(n, old_head);
-            list_tail->set_next(new_node);
-        }
-    }
-
-    void push_end(int n) {
-        if (empty()) {
-            push_front(n);
-        }
-        else {
-            Node* old_head = list_tail->next();
-            Node* new_node = new Node(n, old_head);
-            list_tail->set_next(new_node);
-            list_tail = new_node;
-        }
-    }
-
-    void push_between(int index, int n) {
-        if (empty()) {
-            cerr << "Cannot insert in empty list! Use push_front first.\n";
-            return;
-        }
-
-        int size_val = size();
-        if (index < 0 || index >= size_val) {
-            cerr << "Invalid index! Must be between 0 and " << (size_val - 1) << ".\n";
-            return;
-        }
-
-        if (index == 0) {
-            push_front(n);
-            return;
-        }
-
-        Node* ptr = head();
-        int i = 0;
-        while (i < index - 1) {
+    ~CircularList() {
+        if (empty()) return;
+        Node<T>* ptr = head_node->next();
+        while (ptr != head_node) {
+            Node<T>* temp = ptr;
             ptr = ptr->next();
-            i++;
+            delete temp;
         }
-        Node* new_node = new Node(n, ptr->next());
-        ptr->set_next(new_node);
+        delete head_node;
     }
 
-    int pop_front() {
-        if (empty()) {
-            cerr << "List is empty! Cannot pop front.\n";
-            return -1;
-        }
+    bool empty() const { return head_node == nullptr; }
 
-        Node* old_head = list_tail->next();
-        int value = old_head->retrieve();
-
-        if (old_head == list_tail) {
-            delete old_head;
-            list_tail = nullptr;
+    int size() const {
+        if (empty()) return 0;
+        int count = 0;
+        for (Node<T>* ptr = head_node;; ptr = ptr->next()) {
+            ++count;
+            if (ptr->next() == head_node) break;
         }
-        else {
-            list_tail->set_next(old_head->next());
-            delete old_head;
-        }
-        return value;
+        return count;
     }
 
-    int pop_end() {
+    T front() const {
         if (empty()) {
-            cerr << "List is empty! Cannot pop end.\n";
-            return -1;
+            cerr << "Error: List is empty.\n";
+            return T();
         }
+        return head_node->retrieve();
+    }
 
-        Node* old_tail = list_tail;
-        int value = old_tail->retrieve();
-
-        if (list_tail->next() == list_tail) {
-            delete old_tail;
-            list_tail = nullptr;
+    T end() const {
+        if (empty()) {
+            cerr << "Error: List is empty.\n";
+            return T();
         }
-        else {
-            Node* ptr = list_tail->next();
-            while (ptr->next() != list_tail) {
+        return head_node->prev()->retrieve();
+    }
+
+    void push_front(T val) {
+        Node<T>* newNode = new Node<T>(val);
+        if (empty()) {
+            newNode->set_next(newNode);
+            newNode->set_prev(newNode);
+            head_node = newNode;
+        } else {
+            Node<T>* tail = head_node->prev();
+            newNode->set_next(head_node);
+            newNode->set_prev(tail);
+            tail->set_next(newNode);
+            head_node->set_prev(newNode);
+            head_node = newNode;
+        }
+    }
+
+    void push_end(T val) {
+        Node<T>* newNode = new Node<T>(val);
+        if (empty()) {
+            newNode->set_next(newNode);
+            newNode->set_prev(newNode);
+            head_node = newNode;
+        } else {
+            Node<T>* tail = head_node->prev();
+            newNode->set_next(head_node);
+            newNode->set_prev(tail);
+            tail->set_next(newNode);
+            head_node->set_prev(newNode);
+        }
+    }
+
+    T pop_front() {
+        if (empty()) {
+            cerr << "Error: Cannot pop from empty list.\n";
+            return T();
+        }
+        T val = head_node->retrieve();
+        if (head_node->next() == head_node) {
+            delete head_node;
+            head_node = nullptr;
+        } else {
+            Node<T>* tail = head_node->prev();
+            Node<T>* temp = head_node;
+            head_node = head_node->next();
+            tail->set_next(head_node);
+            head_node->set_prev(tail);
+            delete temp;
+        }
+        return val;
+    }
+
+    T pop_end() {
+        if (empty()) {
+            cerr << "Error: Cannot pop from empty list.\n";
+            return T();
+        }
+        Node<T>* tail = head_node->prev();
+        T val = tail->retrieve();
+
+        if (tail == head_node) {
+            delete head_node;
+            head_node = nullptr;
+        } else {
+            Node<T>* new_tail = tail->prev();
+            new_tail->set_next(head_node);
+            head_node->set_prev(new_tail);
+            delete tail;
+        }
+        return val;
+    }
+
+    int erase(T val) {
+        if (empty()) return 0;
+
+        int removed = 0;
+        Node<T>* ptr = head_node;
+
+        do {
+            if (ptr->retrieve() == val) {
+                Node<T>* temp = ptr;
+                Node<T>* prev = ptr->prev();
+                Node<T>* next = ptr->next();
+
+                prev->set_next(next);
+                next->set_prev(prev);
+
+                if (ptr == head_node)
+                    head_node = (next != ptr ? next : nullptr);
+
+                ptr = next;
+                delete temp;
+                ++removed;
+
+                if (empty()) break;
+            } else {
                 ptr = ptr->next();
             }
-            ptr->set_next(list_tail->next());
-            list_tail = ptr;
-            delete old_tail;
-        }
-        return value;
-    }
+        } while (ptr != head_node);
 
-    int erase(int index) {
-        if (empty()) {
-            cerr << "List is empty! Cannot erase.\n";
-            return -1;
-        }
-
-        int size_val = size();
-        if (index < 0 || index >= size_val) {
-            cerr << "Invalid index! Must be between 0 and " << (size_val - 1) << ".\n";
-            return -1;
-        }
-
-        if (index == 0) {
-            return pop_front();
-        }
-
-        if (index == size_val - 1) {
-            return pop_end();
-        }
-
-        Node* ptr = head();
-        int i = 0;
-        while (i < index - 1) {
-            ptr = ptr->next();
-            i++;
-        }
-
-        Node* to_delete = ptr->next();
-        int value = to_delete->retrieve();
-        ptr->set_next(to_delete->next());
-        delete to_delete;
-
-        return value;
+        return removed;
     }
 
     void display() const {
         if (empty()) {
-            cout << "List is empty.\n";
+            cout << "[]\n";
             return;
         }
-
-        Node* ptr = head();
-        cout << "Head -> ";
+        cout << "[ ";
+        Node<T>* ptr = head_node;
         do {
-            cout << ptr->retrieve() << " -> ";
+            cout << ptr->retrieve() << " ";
             ptr = ptr->next();
-        } while (ptr != head());
-
-        cout << "(Back to Head)\n";
-        cout << "(Tail is: " << list_tail->retrieve() << ")\n";
+        } while (ptr != head_node);
+        cout << "]\n";
     }
 
-    int size() const {
-        if (empty()) return 0;
-
-        int count = 0;
-        Node* ptr = head();
+    void display_reverse() const {
+        if (empty()) {
+            cout << "[]\n";
+            return;
+        }
+        cout << "[ ";
+        Node<T>* ptr = head_node->prev();
         do {
-            ++count;
-            ptr = ptr->next();
-        } while (ptr != head());
-
-        return count;
+            cout << ptr->retrieve() << " ";
+            ptr = ptr->prev();
+        } while (ptr->next() != head_node);
+        cout << "]\n";
     }
 };
 
 int main() {
-    CList lst;
-
-    cout << "Pushing front 10, 20, 30:\n";
-    lst.push_front(10);
-    lst.push_front(20);
-    lst.push_front(30);
-    lst.display();
-
-    cout << "\nPushing end 40, 50:\n";
-    lst.push_end(40);
-    lst.push_end(50);
-    lst.display();
-
-    cout << "\nFront element: " << lst.front() << endl;
-    cout << "End element: " << lst.end() << endl;
-    cout << "Size: " << lst.size() << endl;
-
-    cout << "\nPopping front: " << lst.pop_front() << endl;
-    lst.display();
-
-    cout << "\nPopping end: " << lst.pop_end() << endl;
-    lst.display();
-
-    cout << "\nPopping end: " << lst.pop_end() << endl;
-    lst.display();
-
-    cout << "\nPopping front: " << lst.pop_front() << endl;
-    lst.display();
-
-    cout << "\nPopping end: " << lst.pop_end() << endl;
-    lst.display();
-
-    cout << "\nProgram finished successfully.\n";
-
-    return 0;
+    CircularList<int> l;
+    l.push_front(10);
+    l.push_end(20);
+    l.push_end(30);
+    l.display();
 }
