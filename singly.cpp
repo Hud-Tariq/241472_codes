@@ -1,242 +1,159 @@
 #include <iostream>
 using namespace std;
 
+template <typename T>
 class Node {
 private:
-    int value;
-    Node* next_node;
+    T data;
+    Node<T>* next_node;
 
 public:
-    Node(int val = 0, Node* next = nullptr)
-        : value(val), next_node(next) {
-    }
+    Node(T val = T(), Node<T>* next = nullptr)
+        : data(val), next_node(next) {}
 
-    int retrieve() const { return value; }
-    Node* next() const { return next_node; }
-    void set_next(Node* next) { next_node = next; }
+    T retrieve() const { return data; }
+    Node<T>* next() const { return next_node; }
 
+    void set_next(Node<T>* next) { next_node = next; }
+
+    template <typename U>
     friend class List;
 };
 
+template <typename T>
 class List {
 private:
-    Node* list_head;
+    Node<T>* list_head;
 
 public:
     List() : list_head(nullptr) {}
 
     ~List() {
-        while (!empty())
+        while (!empty()) {
             pop_front();
+        }
     }
 
-    bool empty() const {
-        return (list_head == nullptr);
-    }
+    bool empty() const { return list_head == nullptr; }
 
     int size() const {
         int count = 0;
-        Node* ptr = list_head;
-        while (ptr != nullptr) {
+        for (Node<T>* ptr = list_head; ptr != nullptr; ptr = ptr->next())
             ++count;
-            ptr = ptr->next();
-        }
         return count;
     }
 
-    int front() const {
+    T front() const {
         if (empty()) {
-            cerr << "List is empty! Cannot access front element.\n";
-            return -1;
+            cerr << "Error: List is empty.\n";
+            return T();
         }
         return list_head->retrieve();
     }
 
-    int end() const {
+    T end() const {
         if (empty()) {
-            cerr << "List is empty! Cannot access end element.\n";
-            return -1;
+            cerr << "Error: List is empty.\n";
+            return T();
         }
-
-        Node* ptr = list_head;
-        while (ptr->next() != nullptr)
-            ptr = ptr->next();
+        Node<T>* ptr;
+        for (ptr = list_head; ptr->next() != nullptr; ptr = ptr->next());
         return ptr->retrieve();
     }
 
-    Node* head() const {
-        return list_head;
+    Node<T>* head() const { return list_head; }
+
+    int count(T val) const {
+        int c = 0;
+        for (Node<T>* ptr = list_head; ptr != nullptr; ptr = ptr->next())
+            if (ptr->retrieve() == val)
+                ++c;
+        return c;
     }
 
-    int count(int n) const {
-        int node_count = 0;
-        Node* ptr = head();
-        while (ptr != nullptr) {
-            if (ptr->retrieve() == n)
-                ++node_count;
-            ptr = ptr->next();
-        }
-        return node_count;
+    void push_front(T val) {
+        Node<T>* newNode = new Node<T>(val, list_head);
+        list_head = newNode;
     }
 
-    void push_front(int n) {
-        Node* new_node = new Node(n, list_head);
-        list_head = new_node;
-    }
-
-    void push_end(int n) {
-        Node* new_node = new Node(n, nullptr);
-
+    void push_end(T val) {
+        Node<T>* newNode = new Node<T>(val, nullptr);
         if (empty()) {
-            list_head = new_node;
+            list_head = newNode;
             return;
         }
-
-        Node* ptr = list_head;
-        while (ptr->next() != nullptr)
-            ptr = ptr->next();
-        ptr->set_next(new_node);
+        Node<T>* ptr;
+        for (ptr = list_head; ptr->next() != nullptr; ptr = ptr->next());
+        ptr->set_next(newNode);
     }
 
-    void push_between(int index, int n) {
-        int size_val = size();
-
-        if (index < 0 || index > size_val) {
-            cerr << "Invalid index! Must be between 0 and " << size_val << ".\n";
-            return;
-        }
-
-        if (index == 0) {
-            push_front(n);
-            return;
-        }
-
-        if (index == size_val) {
-            push_end(n);
-            return;
-        }
-
-        Node* ptr = list_head;
-        int i = 0;
-        while (i < index - 1) {
-            ptr = ptr->next();
-            i++;
-        }
-        Node* new_node = new Node(n, ptr->next());
-        ptr->set_next(new_node);
-    }
-
-    int pop_front() {
+    T pop_front() {
         if (empty()) {
-            cerr << "List is empty! Cannot pop front.\n";
-            return -1;
+            cerr << "Error: Cannot pop from empty list.\n";
+            return T();
         }
-
-        int value = list_head->retrieve();
-        Node* temp = list_head;
+        Node<T>* temp = list_head;
+        T val = temp->retrieve();
         list_head = list_head->next();
         delete temp;
-        return value;
+        return val;
     }
 
-    int pop_end() {
+    T pop_end() {
         if (empty()) {
-            cerr << "List is empty! Cannot pop end.\n";
-            return -1;
+            cerr << "Error: Cannot pop from empty list.\n";
+            return T();
         }
-
         if (list_head->next() == nullptr) {
-            int value = list_head->retrieve();
+            T val = list_head->retrieve();
             delete list_head;
             list_head = nullptr;
-            return value;
+            return val;
         }
-
-        Node* ptr = list_head;
-        while (ptr->next()->next() != nullptr)
-            ptr = ptr->next();
-
-        int value = ptr->next()->retrieve();
+        Node<T>* ptr;
+        for (ptr = list_head; ptr->next()->next() != nullptr; ptr = ptr->next());
+        T val = ptr->next()->retrieve();
         delete ptr->next();
         ptr->set_next(nullptr);
-        return value;
+        return val;
     }
 
-    int erase(int n) {
-        int count_removed = 0;
+    int erase(T val) {
+        if (empty()) return 0;
+        int removed = 0;
 
-        while (list_head != nullptr && list_head->retrieve() == n) {
-            Node* temp = list_head;
+        while (list_head && list_head->retrieve() == val) {
+            Node<T>* temp = list_head;
             list_head = list_head->next();
             delete temp;
-            ++count_removed;
+            ++removed;
         }
 
-        Node* ptr = list_head;
-        while (ptr != nullptr && ptr->next() != nullptr) {
-            if (ptr->next()->retrieve() == n) {
-                Node* temp = ptr->next();
-                ptr->next_node = ptr->next()->next();
+        for (Node<T>* ptr = list_head; ptr && ptr->next(); ) {
+            if (ptr->next()->retrieve() == val) {
+                Node<T>* temp = ptr->next();
+                ptr->set_next(temp->next());
                 delete temp;
-                ++count_removed;
-            }
-            else {
+                ++removed;
+            } else {
                 ptr = ptr->next();
             }
         }
-
-        return count_removed;
+        return removed;
     }
 
     void display() const {
-        if (empty()) {
-            cout << "List is empty.\n";
-            return;
-        }
-
-        Node* ptr = list_head;
-        while (ptr != nullptr) {
-            cout << ptr->retrieve() << " -> ";
-            ptr = ptr->next();
-        }
-        cout << "nullptr\n";
+        cout << "[ ";
+        for (Node<T>* ptr = list_head; ptr != nullptr; ptr = ptr->next())
+            cout << ptr->retrieve() << " ";
+        cout << "]\n";
     }
 };
 
 int main() {
-    List lst;
-
-    cout << "Pushing front 10, 20, 30 (30 will become the head):\n";
-    lst.push_front(10);
-    lst.push_front(20);
-    lst.push_front(30);
-    lst.display();
-
-    cout << "\nPushing end 40, 50 (these will be appended at tail):\n";
-    lst.push_end(40);
-    lst.push_end(50);
-    lst.display();
-
-    cout << "\nFront element: " << lst.front() << endl;
-    cout << "End element: " << lst.end() << endl;
-    cout << "Size of list: " << lst.size() << endl;
-
-    cout << "\nCounting how many times 20 appears: " << lst.count(20) << endl;
-
-    cout << "\nErasing all nodes with value 20:\n";
-    lst.erase(20);
-    lst.display();
-
-    cout << "\nPopping front (removes head node): " << lst.pop_front() << endl;
-    lst.display();
-
-    cout << "\nPopping end (removes last node): " << lst.pop_end() << endl;
-    lst.display();
-
-    cout << "\nIs list empty? " << (lst.empty() ? "Yes" : "No") << endl;
-    cout << "Final size of list: " << lst.size() << endl;
-
-    cout << "\nProgram finished successfully.\n";
-
-    return 0;
+    List<int> l;
+    l.push_front(10);
+    l.push_end(20);
+    l.push_end(30);
+    l.display();
 }
