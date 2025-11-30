@@ -1,286 +1,198 @@
 #include <iostream>
 using namespace std;
 
-class DNode {
+class Node {
 private:
-    int value;
-    DNode* next_node;
-    DNode* prev_node;
+    int data;
+    Node* next_node;
+    Node* prev_node;
 
 public:
-    DNode(int val = 0, DNode* next = nullptr, DNode* prev = nullptr)
-        : value(val), next_node(next), prev_node(prev) {
-    }
+    Node(int val = 0, Node* prev = nullptr, Node* next = nullptr)
+        : data(val), prev_node(prev), next_node(next) {}
 
-    int retrieve() const { return value; }
-    DNode* next() const { return next_node; }
-    DNode* prev() const { return prev_node; }
-    void set_next(DNode* next) { next_node = next; }
-    void set_prev(DNode* prev) { prev_node = prev; }
+    int retrieve() const { return data; }
+    Node* next() const { return next_node; }
+    Node* prev() const { return prev_node; }
 
-    friend class DList;
+    void set_next(Node* next) { next_node = next; }
+    void set_prev(Node* prev) { prev_node = prev; }
+
+    friend class List;
 };
 
-class DList {
+class List {
 private:
-    DNode* list_head;
-    DNode* list_tail;
+    Node* head_node;
+    Node* tail_node;
 
 public:
-    DList() : list_head(nullptr), list_tail(nullptr) {}
+    List() : head_node(nullptr), tail_node(nullptr) {}
 
-    ~DList() {
-        while (!empty())
+    ~List() {
+        for (; !empty(); ) {
             pop_front();
+        }
     }
 
-    bool empty() const {
-        return (list_head == nullptr);
-    }
+    bool empty() const { return head_node == nullptr; }
 
     int size() const {
         int count = 0;
-        DNode* ptr = list_head;
-        while (ptr != nullptr) {
+        for (Node* ptr = head_node; ptr != nullptr; ptr = ptr->next())
             ++count;
-            ptr = ptr->next();
-        }
         return count;
     }
 
     int front() const {
         if (empty()) {
-            cerr << "List is empty! Cannot access front element.\n";
+            cerr << "Error: List is empty.\n";
             return -1;
         }
-        return list_head->retrieve();
+        return head_node->retrieve();
     }
 
     int end() const {
         if (empty()) {
-            cerr << "List is empty! Cannot access end element.\n";
+            cerr << "Error: List is empty.\n";
             return -1;
         }
-        return list_tail->retrieve();
+        return tail_node->retrieve();
     }
 
-    DNode* head() const {
-        return list_head;
+    Node* head() const { return head_node; }
+    Node* tail() const { return tail_node; }
+
+    int count(int val) const {
+        int c = 0;
+        for (Node* ptr = head_node; ptr != nullptr; ptr = ptr->next())
+            if (ptr->retrieve() == val)
+                ++c;
+        return c;
     }
 
-    DNode* tail() const {
-        return list_tail;
-    }
-
-    int count(int n) const {
-        int node_count = 0;
-        DNode* ptr = head();
-        while (ptr != nullptr) {
-            if (ptr->retrieve() == n)
-                ++node_count;
-            ptr = ptr->next();
-        }
-        return node_count;
-    }
-
-    void push_front(int n) {
-        DNode* new_node = new DNode(n, list_head, nullptr);
-
+    void push_front(int val) {
+        Node* newNode = new Node(val, nullptr, head_node);
         if (empty()) {
-            list_head = list_tail = new_node;
+            tail_node = newNode;
+        } else {
+            head_node->set_prev(newNode);
         }
-        else {
-            list_head->set_prev(new_node);
-            list_head = new_node;
-        }
+        head_node = newNode;
     }
 
-    void push_end(int n) {
-        DNode* new_node = new DNode(n, nullptr, list_tail);
-
+    void push_end(int val) {
+        Node* newNode = new Node(val, tail_node, nullptr);
         if (empty()) {
-            list_head = list_tail = new_node;
+            head_node = newNode;
+        } else {
+            tail_node->set_next(newNode);
         }
-        else {
-            list_tail->set_next(new_node);
-            list_tail = new_node;
-        }
-    }
-
-    void push_between(int index, int n) {
-        int size_val = size();
-
-        if (index < 0 || index > size_val) {
-            cerr << "Invalid index! Must be between 0 and " << size_val << ".\n";
-            return;
-        }
-
-        if (index == 0) {
-            push_front(n);
-            return;
-        }
-
-        if (index == size_val) {
-            push_end(n);
-            return;
-        }
-
-        DNode* ptr = list_head;
-        int i = 0;
-        while (i < index - 1) {
-            ptr = ptr->next();
-            i++;
-        }
-        DNode* new_node = new DNode(n, ptr->next(), ptr);
-        ptr->next()->set_prev(new_node);
-        ptr->set_next(new_node);
+        tail_node = newNode;
     }
 
     int pop_front() {
         if (empty()) {
-            cerr << "List is empty! Cannot pop front.\n";
+            cerr << "Error: Cannot pop from empty list.\n";
             return -1;
         }
-
-        int value = list_head->retrieve();
-        DNode* temp = list_head;
-
-        if (list_head == list_tail) {
-            list_head = list_tail = nullptr;
-        }
-        else {
-            list_head = list_head->next();
-            list_head->set_prev(nullptr);
-        }
-
+        Node* temp = head_node;
+        int val = temp->retrieve();
+        head_node = head_node->next();
+        if (head_node)
+            head_node->set_prev(nullptr);
+        else
+            tail_node = nullptr;
         delete temp;
-        return value;
+        return val;
     }
 
     int pop_end() {
         if (empty()) {
-            cerr << "List is empty! Cannot pop end.\n";
+            cerr << "Error: Cannot pop from empty list.\n";
             return -1;
         }
-
-        int value = list_tail->retrieve();
-        DNode* temp = list_tail;
-
-        if (list_head == list_tail) {
-            list_head = list_tail = nullptr;
-        }
-        else {
-            list_tail = list_tail->prev();
-            list_tail->set_next(nullptr);
-        }
-
+        Node* temp = tail_node;
+        int val = temp->retrieve();
+        tail_node = tail_node->prev();
+        if (tail_node)
+            tail_node->set_next(nullptr);
+        else
+            head_node = nullptr;
         delete temp;
-        return value;
+        return val;
     }
 
-    int erase(int n) {
-        int count_removed = 0;
-        DNode* ptr = list_head;
+    int erase(int val) {
+        if (empty()) return 0;
+        int removed = 0;
 
-        while (ptr != nullptr) {
-            DNode* next_node = ptr->next();
-
-            if (ptr->retrieve() == n) {
-                if (ptr == list_head) {
-                    pop_front();
-                }
-                else if (ptr == list_tail) {
-                    pop_end();
-                }
-                else {
+        for (Node* ptr = head_node; ptr != nullptr; ) {
+            if (ptr->retrieve() == val) {
+                Node* temp = ptr;
+                if (ptr->prev())
                     ptr->prev()->set_next(ptr->next());
+                else
+                    head_node = ptr->next();
+
+                if (ptr->next())
                     ptr->next()->set_prev(ptr->prev());
-                    delete ptr;
-                }
-                ++count_removed;
+                else
+                    tail_node = ptr->prev();
+
+                ptr = ptr->next();
+                delete temp;
+                ++removed;
+            } else {
+                ptr = ptr->next();
             }
-            ptr = next_node;
         }
-        return count_removed;
+        return removed;
     }
 
     void display() const {
-        if (empty()) {
-            cout << "List is empty.\n";
-            return;
-        }
-
-        cout << "nullptr <- ";
-        DNode* ptr = list_head;
-        while (ptr != nullptr) {
-            cout << ptr->retrieve();
-            if (ptr->next() != nullptr)
-                cout << " <-> ";
-            ptr = ptr->next();
-        }
-        cout << " -> nullptr\n";
+        cout << "[ ";
+        for (Node* ptr = head_node; ptr != nullptr; ptr = ptr->next())
+            cout << ptr->retrieve() << " ";
+        cout << "]\n";
     }
 
     void display_reverse() const {
-        if (empty()) {
-            cout << "List is empty.\n";
-            return;
-        }
-
-        cout << "nullptr <- ";
-        DNode* ptr = list_tail;
-        while (ptr != nullptr) {
-            cout << ptr->retrieve();
-            if (ptr->prev() != nullptr)
-                cout << " <-> ";
-            ptr = ptr->prev();
-        }
-        cout << " -> nullptr\n";
+        cout << "[ ";
+        for (Node* ptr = tail_node; ptr != nullptr; ptr = ptr->prev())
+            cout << ptr->retrieve() << " ";
+        cout << "]\n";
     }
 };
 
 int main() {
-    DList lst;
+    List l;
+    l.push_front(10);
+    l.push_end(20);
+    l.push_end(30);
+    l.display();
 
-    cout << "Pushing front 10, 20, 30:\n";
-    lst.push_front(10);
-    lst.push_front(20);
-    lst.push_front(30);
-    lst.display();
+    cout << "Front: " << l.front() << endl;
+    cout << "End: " << l.end() << endl;
+    cout << "Size: " << l.size() << endl;
 
-    cout << "\nPushing end 40, 50:\n";
-    lst.push_end(40);
-    lst.push_end(50);
-    lst.display();
+    l.pop_front();
+    l.display();
 
-    cout << "\nDisplay in reverse:\n";
-    lst.display_reverse();
+    l.push_front(40);
+    l.push_end(20);
+    l.display();
 
-    cout << "\nFront element: " << lst.front() << endl;
-    cout << "End element: " << lst.end() << endl;
-    cout << "Size of list: " << lst.size() << endl;
+    cout << "Count(20): " << l.count(20) << endl;
 
-    cout << "\nCounting how many times 20 appears: " << lst.count(20) << endl;
+    l.erase(20);
+    l.display();
 
-    cout << "\nErasing all nodes with value 20:\n";
-    lst.erase(20);
-    lst.display();
+    cout << "Pop end: " << l.pop_end() << endl;
+    l.display();
 
-    cout << "\nPopping front: " << lst.pop_front() << endl;
-    lst.display();
-
-    cout << "\nPopping end: " << lst.pop_end() << endl;
-    lst.display();
-
-    cout << "\nErasing 10 and 40...\n";
-    lst.erase(10);
-    lst.erase(40);
-    lst.display();
-
-    cout << "\nAttempting to pop from empty list:\n";
-    lst.pop_front();
-
-    cout << "\nProgram finished successfully.\n";
+    cout << "Reverse display: ";
+    l.display_reverse();
 
     return 0;
 }
