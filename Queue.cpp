@@ -1,26 +1,28 @@
 #include <iostream>
 using namespace std;
 
+template <typename T>
 class Node {
 public:
-    int data;
-    Node* next;
+    T data;
+    Node<T>* next;
 
-    Node(int val, Node* nxt = nullptr)
+    Node(T val, Node<T>* nxt = nullptr)
         : data(val), next(nxt) {}
 };
 
+template <typename T>
 class List {
 private:
-    Node* head;
-    Node* tail;
+    Node<T>* head;
+    Node<T>* tail;
 
 public:
     List() : head(nullptr), tail(nullptr) {}
 
     ~List() {
         while (head != nullptr) {
-            Node* temp = head;
+            Node<T>* temp = head;
             head = head->next;
             delete temp;
         }
@@ -28,8 +30,8 @@ public:
 
     bool empty() const { return head == nullptr; }
 
-    void push_back(int val) {
-        Node* n = new Node(val);
+    void push_back(T val) {
+        Node<T>* n = new Node<T>(val);
         if (empty()) {
             head = tail = n;
         } else {
@@ -38,15 +40,15 @@ public:
         }
     }
 
-    int front() const {
+    T front() const {
         if (empty()) throw underflow_error("Queue underflow");
         return head->data;
     }
 
-    int pop_front() {
+    T pop_front() {
         if (empty()) throw underflow_error("Queue underflow");
-        Node* temp = head;
-        int val = head->data;
+        Node<T>* temp = head;
+        T val = head->data;
         head = head->next;
         if (!head) tail = nullptr;
         delete temp;
@@ -54,30 +56,33 @@ public:
     }
 };
 
+
+template <typename T>
 class Queue {
 private:
-    List l;
+    List<T> l;
 
 public:
     bool empty() const { return l.empty(); }
 
-    int front() const {
+    T front() const {
         if (empty()) throw underflow_error("Queue underflow");
         return l.front();
     }
 
-    void push(int obj) {
+    void push(T obj) {
         l.push_back(obj);
     }
 
-    int pop() {
+    T pop() {
         if (empty()) throw underflow_error("Queue underflow");
         return l.pop_front();
     }
 };
 
+
 int main() {
-    Queue q;
+    Queue<int> q;
 
     q.push(10);
     q.push(20);
