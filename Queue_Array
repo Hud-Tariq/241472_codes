@@ -1,13 +1,14 @@
 #include <iostream>
 using namespace std;
 
+template <typename T>
 class Queue {
 private:
     int queue_size;
     int ifront;
     int iback;
     int array_capacity;
-    int* array;
+    T* array;
 
 public:
     Queue(int n = 10)
@@ -15,7 +16,7 @@ public:
           ifront(0),
           iback(-1),
           array_capacity(n),
-          array(new int[n]) {}
+          array(new T[n]) {}
 
     ~Queue() {
         delete[] array;
@@ -29,12 +30,12 @@ public:
         return (queue_size == array_capacity);
     }
 
-    int front() const {
+    T front() const {
         if (empty()) throw underflow_error("Queue underflow");
         return array[ifront];
     }
 
-    void push(int obj) {
+    void push(T obj) {
         if (full()) throw overflow_error("Queue overflow");
 
         iback = (iback + 1) % array_capacity;
@@ -42,18 +43,19 @@ public:
         ++queue_size;
     }
 
-    int pop() {
+    T pop() {
         if (empty()) throw underflow_error("Queue underflow");
 
-        int val = array[ifront];
+        T val = array[ifront];
         ifront = (ifront + 1) % array_capacity;
         --queue_size;
         return val;
     }
 };
 
+
 int main() {
-    Queue q(5);
+    Queue<int> q(5);
 
     q.push(1);
     q.push(2);
