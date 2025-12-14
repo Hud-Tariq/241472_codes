@@ -1,0 +1,105 @@
+#include <iostream>
+using namespace std;
+
+// ===============================
+// BINARY TREE NODE (TEMPLATE)
+// ===============================
+
+template <typename T>
+class BinaryTree {
+private:
+    T data;
+    BinaryTree<T>* parent_node;
+    BinaryTree<T>* left_child;
+    BinaryTree<T>* right_child;
+
+public:
+    BinaryTree(T val = T(), BinaryTree<T>* p = nullptr)
+        : data(val),
+          parent_node(p),
+          left_child(nullptr),
+          right_child(nullptr) {}
+
+    // ---------- ACCESSORS ----------
+    T& value() { return data; }
+
+    BinaryTree<T>* parent() const { return parent_node; }
+    BinaryTree<T>* left() const { return left_child; }
+    BinaryTree<T>* right() const { return right_child; }
+
+    bool is_leaf() const {
+        return (left_child == nullptr && right_child == nullptr);
+    }
+
+    // ---------- MODIFIERS ----------
+    void set_left(BinaryTree<T>* child) {
+        left_child = child;
+        if (child)
+            child->parent_node = this;
+    }
+
+    void set_right(BinaryTree<T>* child) {
+        right_child = child;
+        if (child)
+            child->parent_node = this;
+    }
+};
+
+// ===============================
+// TRAVERSALS (LECTURE 15)
+// ===============================
+
+template <typename T>
+void preorder(BinaryTree<T>* root) {
+    if (!root) return;
+
+    cout << root->value() << " ";
+    preorder(root->left());
+    preorder(root->right());
+}
+
+template <typename T>
+void inorder(BinaryTree<T>* root) {
+    if (!root) return;
+
+    inorder(root->left());
+    cout << root->value() << " ";
+    inorder(root->right());
+}
+
+template <typename T>
+void postorder(BinaryTree<T>* root) {
+    if (!root) return;
+
+    postorder(root->left());
+    postorder(root->right());
+    cout << root->value() << " ";
+}
+
+// ===============================
+// MAIN (TESTING)
+// ===============================
+
+int main() {
+    BinaryTree<int>* root = new BinaryTree<int>(1);
+
+    root->set_left(new BinaryTree<int>(2));
+    root->set_right(new BinaryTree<int>(3));
+
+    root->left()->set_left(new BinaryTree<int>(4));
+    root->left()->set_right(new BinaryTree<int>(5));
+
+    cout << "Preorder: ";
+    preorder(root);
+    cout << endl;
+
+    cout << "Inorder: ";
+    inorder(root);
+    cout << endl;
+
+    cout << "Postorder: ";
+    postorder(root);
+    cout << endl;
+
+    return 0;
+}
