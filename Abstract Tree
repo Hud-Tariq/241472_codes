@@ -1,0 +1,20 @@
+#include <iostream>
+using namespace std;
+
+// ===================================
+// ABSTRACT TREE (TEMPLATE)
+// ===================================
+
+template <typename T>
+class AbstractTree {
+public:
+    virtual ~AbstractTree() {}
+
+    // ---------- CORE OPERATIONS ----------
+    virtual T& value() = 0;
+    virtual AbstractTree<T>* parent() const = 0;
+
+    // ---------- STRUCTURE ----------
+    virtual bool is_leaf() const = 0;
+    virtual int depth() const = 0;
+};
