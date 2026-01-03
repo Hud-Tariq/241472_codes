@@ -13,14 +13,12 @@ void double_capacity() {
     int* new_array = new int[array_capacity * 2];
 
     int i = ifront;
-    int count = 0;
 
-    while (count < queue_size) {
+    for (int count = 0; count < queue_size; count++) {
         new_array[count] = array[i];
-        count++;
         i++;
 
-        // Wrap around manually
+        // Manual wrap-around
         if (i == array_capacity) {
             i = 0;
         }
@@ -33,6 +31,7 @@ void double_capacity() {
     ifront = 0;
     iback = queue_size - 1;
 }
+
 
 public:
     Queue(int n = 5)
