@@ -9,24 +9,30 @@ private:
     int iback;
     int array_capacity;
     int* array;
+void double_capacity() {
+    int* new_array = new int[array_capacity * 2];
 
-    // Easier-to-understand normalized doubling
-    void double_capacity() {
-        int* new_array = new int[array_capacity * 2];
+    int i = ifront;
+    int count = 0;
 
-        // Copy elements in FIFO order
-        int j = 0;
-        for (int i = ifront; j < queue_size; i = (i + 1) % array_capacity) {
-            new_array[j++] = array[i];
+    while (count < queue_size) {
+        new_array[count] = array[i];
+        count++;
+        i++;
+
+        // Wrap around manually
+        if (i == array_capacity) {
+            i = 0;
         }
-
-        delete[] array;
-
-        array = new_array;
-        array_capacity *= 2;
-        ifront = 0;
-        iback = queue_size - 1;
     }
+
+    delete[] array;
+
+    array = new_array;
+    array_capacity *= 2;
+    ifront = 0;
+    iback = queue_size - 1;
+}
 
 public:
     Queue(int n = 5)
