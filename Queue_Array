@@ -1,76 +1,90 @@
 #include <iostream>
+#include <stdexcept>
 using namespace std;
 
-template <typename T>
 class Queue {
 private:
     int queue_size;
     int ifront;
     int iback;
     int array_capacity;
-    T* array;
+    int* array;
+
+    // Easier-to-understand normalized doubling
+    void double_capacity() {
+        int* new_array = new int[array_capacity * 2];
+
+        // Copy elements in FIFO order
+        int j = 0;
+        for (int i = ifront; j < queue_size; i = (i + 1) % array_capacity) {
+            new_array[j++] = array[i];
+        }
+
+        delete[] array;
+
+        array = new_array;
+        array_capacity *= 2;
+        ifront = 0;
+        iback = queue_size - 1;
+    }
 
 public:
-    Queue(int n = 10)
+    Queue(int n = 5)
         : queue_size(0),
           ifront(0),
           iback(-1),
           array_capacity(n),
-          array(new T[n]) {}
+          array(new int[array_capacity]) {}
 
     ~Queue() {
         delete[] array;
     }
 
     bool empty() const {
-        return (queue_size == 0);
+        return queue_size == 0;
     }
 
-    bool full() const {
-        return (queue_size == array_capacity);
-    }
-
-    T front() const {
-        if (empty()) throw underflow_error("Queue underflow");
+    int front() const {
+        if (empty())
+            throw underflow_error("Queue Underflow");
         return array[ifront];
     }
 
-    void push(T obj) {
-        if (full()) throw overflow_error("Queue overflow");
+    void push(int x) {
+        if (queue_size == array_capacity)
+            double_capacity();
 
         iback = (iback + 1) % array_capacity;
-        array[iback] = obj;
-        ++queue_size;
+        array[iback] = x;
+        queue_size++;
     }
 
-    T pop() {
-        if (empty()) throw underflow_error("Queue underflow");
+    int pop() {
+        if (empty())
+            throw underflow_error("Queue Underflow");
 
-        T val = array[ifront];
+        int value = array[ifront];
         ifront = (ifront + 1) % array_capacity;
-        --queue_size;
-        return val;
+        queue_size--;
+        return value;
     }
 };
 
-
+// ---------------- MAIN FUNCTION ----------------
 int main() {
-    Queue<int> q(5);
+    Queue q(4);
 
-    q.push(1);
-    q.push(2);
-    q.push(3);
+    q.push(10);
+    q.push(20);
+    q.push(30);
+    q.push(40);
 
-    cout << q.pop() << endl;  // 1
-    cout << q.front() << endl; // 2
-
-    q.push(4);
-    q.push(5);
-
-    cout << q.pop() << endl; // 2
-    q.push(6);               // circular wrap works
+    // This push forces normalization + doubling
+    q.push(50);
 
     while (!q.empty()) {
         cout << q.pop() << " ";
     }
+
+    return 0;
 }
