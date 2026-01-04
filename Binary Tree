@@ -1,104 +1,262 @@
 #include <iostream>
+#include <algorithm> // Required for std::max
+
 using namespace std;
 
-// ===============================
-// BINARY TREE NODE (TEMPLATE)
-// ===============================
+// ==========================================
+// 1. Binary Node Class Definition
+// ==========================================
+template <typename Type>
+class Binary_node
+{
+    protected:
+        Type element;
+        Binary_node *left_tree;
+        Binary_node *right_tree;
 
-template <typename T>
-class BinaryTree {
-private:
-    T data;
-    BinaryTree<T>* parent_node;
-    BinaryTree<T>* left_child;
-    BinaryTree<T>* right_child;
+    public:
+        // Constructor
+        Binary_node( Type const & );
 
-public:
-    BinaryTree(T val = T(), BinaryTree<T>* p = nullptr)
-        : data(val),
-          parent_node(p),
-          left_child(nullptr),
-          right_child(nullptr) {}
+        // Accessors
+        Type retrieve() const;
+        Binary_node* left() const;
+        Binary_node* right() const;
 
-    // ---------- ACCESSORS ----------
-    T& value() { return data; }
+        // Status Checks
+        bool empty() const;
+        bool is_leaf() const;
 
-    BinaryTree<T>* parent() const { return parent_node; }
-    BinaryTree<T>* left() const { return left_child; }
-    BinaryTree<T>* right() const { return right_child; }
+        // Metrics
+        int size() const;
+        int height() const;
 
-    bool is_leaf() const {
-        return (left_child == nullptr && right_child == nullptr);
-    }
-
-    // ---------- MODIFIERS ----------
-    void set_left(BinaryTree<T>* child) {
-        left_child = child;
-        if (child)
-            child->parent_node = this;
-    }
-
-    void set_right(BinaryTree<T>* child) {
-        right_child = child;
-        if (child)
-            child->parent_node = this;
-    }
+        // Maintenance
+        void clear(Binary_node<Type> *);
+        
+        // Helper to manually set children (Required since insert logic wasn't provided in manual)
+        void set_left(Binary_node *n) { left_tree = n; }
+        void set_right(Binary_node *n) { right_tree = n; }
 };
 
-// ===============================
-// TRAVERSALS (LECTURE 15)
-// ===============================
+// ==========================================
+// 2. Binary Node Class Implementation
+// ==========================================
 
-template <typename T>
-void preorder(BinaryTree<T>* root) {
-    if (!root) return;
-
-    cout << root->value() << " ";
-    preorder(root->left());
-    preorder(root->right());
+// Constructor
+template <typename Type>
+Binary_node<Type>::Binary_node( Type const &obj ) 
+    : element(obj), left_tree(nullptr), right_tree(nullptr)
+{
+    // Empty constructor
 }
 
-template <typename T>
-void inorder(BinaryTree<T>* root) {
-    if (!root) return;
-
-    inorder(root->left());
-    cout << root->value() << " ";
-    inorder(root->right());
+// Retrieve
+template <typename Type>
+Type Binary_node<Type>::retrieve() const
+{
+    return element;
 }
 
-template <typename T>
-void postorder(BinaryTree<T>* root) {
-    if (!root) return;
-
-    postorder(root->left());
-    postorder(root->right());
-    cout << root->value() << " ";
+// Left Child Accessor
+template <typename Type>
+Binary_node<Type> *Binary_node <Type>::left() const
+{
+    return left_tree;
 }
 
-// ===============================
-// MAIN (TESTING)
-// ===============================
+// Right Child Accessor
+template <typename Type>
+Binary_node<Type> *Binary_node <Type>::right() const
+{
+    return right_tree;
+}
 
+// Empty Check
+template <typename Type>
+bool Binary_node <Type>::empty() const
+{
+    return ( this == nullptr );
+}
+
+// Is Leaf Check
+template <typename Type>
+bool Binary_node <Type>::is_leaf() const
+{
+    return !empty() && left()->empty() && right()->empty();
+}
+
+// Size
+template <typename Type>
+int Binary_node <Type>::size() const
+{
+    return empty() ? 0 : 1 + left()->size() + right()->size();
+}
+
+// Height
+template <typename Type>
+int Binary_node <Type>::height() const
+{
+    return empty() ? -1 : 1 + std::max(left()->height(), right()->height());
+}
+
+// Clear
+template <typename Type>
+void Binary_node <Type>::clear( Binary_node<Type> *ptr_to_this )
+{
+    if (empty())
+    {
+        return;
+    }
+    left()->clear(left_tree);
+    right()->clear(right_tree);
+    delete this;
+    ptr_to_this = nullptr;
+}
+
+// ==========================================
+// 3. Binary Tree Class Definition
+// ==========================================
+template <typename Type>
+class Binary_tree
+{
+    private:
+        Binary_node<Type> *root_node;
+    
+    public:
+        Binary_tree();
+        Binary_node<Type> *root() const;
+        bool empty() const;
+        int size() const;
+        int height() const;
+        
+        // Manual setter for testing (since insert() was commented out in manual)
+        void set_root(Binary_node<Type> *n) { root_node = n; }
+        // void insert(Type obj); // Commented out in source
+};
+
+// ==========================================
+// 4. Binary Tree Class Implementation
+// ==========================================
+
+// Constructor
+template <typename Type>
+Binary_tree<Type>::Binary_tree() : root_node( nullptr )
+{
+    // Empty constructor
+}
+
+// Root Accessor
+template <typename Type>
+Binary_node<Type> * Binary_tree<Type>::root() const
+{
+    return root_node;
+}
+
+// Empty Check
+template <typename Type>
+bool Binary_tree<Type>::empty() const
+{
+    return ( root_node == nullptr );
+}
+
+// Size
+template <typename Type>
+int Binary_tree<Type>::size() const
+{
+    return ( root() == nullptr ) ? 0 : root()->size();
+}
+
+// Height
+template <typename Type>
+int Binary_tree<Type>::height() const
+{
+    return ( root() == nullptr ) ? -1 : root()->height();
+}
+
+// ==========================================
+// 5. Global Traversal Functions
+// ==========================================
+
+// Inorder Traversal: Left -> Root -> Right
+template <typename Type>
+void inorder(Binary_node<Type> *r)
+{
+    if(r != nullptr)
+    {
+        inorder(r->left());
+        cout << r->retrieve() << "\t";
+        inorder(r->right());
+    }
+}
+
+// Postorder Traversal: Left -> Right -> Root
+template <typename Type>
+void postorder(Binary_node<Type> *r)
+{
+    if(r != NULL)
+    {
+        postorder(r->left());
+        postorder(r->right());
+        cout << r->retrieve() << "\t";
+    }
+}
+
+// Preorder Traversal: Root -> Left -> Right
+template <typename Type>
+void preorder(Binary_node<Type> *r)
+{
+    if(r != NULL)
+    {
+        cout << r->retrieve() << "\t";
+        preorder(r->left());
+        preorder(r->right());
+    }
+}
+
+// ==========================================
+// 6. Main Function (Task 1)
+// ==========================================
 int main() {
-    BinaryTree<int>* root = new BinaryTree<int>(1);
+    // 1. Create Nodes manually (Since insert() was not implemented in manual)
+    Binary_node<char> *nodeA = new Binary_node<char>('A');
+    Binary_node<char> *nodeB = new Binary_node<char>('B');
+    Binary_node<char> *nodeC = new Binary_node<char>('C');
+    Binary_node<char> *nodeD = new Binary_node<char>('D');
+    Binary_node<char> *nodeE = new Binary_node<char>('E');
 
-    root->set_left(new BinaryTree<int>(2));
-    root->set_right(new BinaryTree<int>(3));
+    // 2. Link them to form the tree:
+    //       A
+    //     /   \
+    //    B     C
+    //   / \
+    //  D   E
+    
+    nodeA->set_left(nodeB);
+    nodeA->set_right(nodeC);
+    nodeB->set_left(nodeD);
+    nodeB->set_right(nodeE);
 
-    root->left()->set_left(new BinaryTree<int>(4));
-    root->left()->set_right(new BinaryTree<int>(5));
+    // 3. Create Tree Object
+    Binary_tree<char> myTree;
+    myTree.set_root(nodeA);
 
-    cout << "Preorder: ";
-    preorder(root);
+    // 4. Test Metrics
+    cout << "Tree Created!" << endl;
+    cout << "Size (Should be 5): " << myTree.size() << endl;
+    cout << "Height (Should be 2): " << myTree.height() << endl;
+
+    // 5. Test Traversals
+    cout << "\nPre-order Traversal (A B D E C):" << endl;
+    preorder(myTree.root());
     cout << endl;
 
-    cout << "Inorder: ";
-    inorder(root);
+    cout << "\nIn-order Traversal (D B E A C):" << endl;
+    inorder(myTree.root());
     cout << endl;
 
-    cout << "Postorder: ";
-    postorder(root);
+    cout << "\nPost-order Traversal (D E B C A):" << endl;
+    postorder(myTree.root());
     cout << endl;
 
     return 0;
