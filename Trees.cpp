@@ -206,15 +206,25 @@ public:
 
     // BFS (Slide 232)
     void breadth_first_traversal() {
+        // Edge Case 1: Empty Tree
+        if (this == nullptr) return; 
+
         Queue<Simple_tree*> q;
         q.push(this);
 
         while (!q.empty()) {
             Simple_tree* p = q.pop(); 
+            
+            // Edge Case 2: Queue somehow got a null (defensive coding)
+            if (p == nullptr) continue; 
+
             cout << p->retrieve() << " "; 
 
             for (Node<Simple_tree*> *ptr = p->children.head(); ptr != nullptr; ptr = ptr->next()) {
-                q.push(ptr->retrieve());
+                // Edge Case 3: Child pointer in list is null
+                if (ptr->retrieve() != nullptr) {
+                    q.push(ptr->retrieve());
+                }
             }
         }
         cout << endl;
@@ -222,9 +232,18 @@ public:
 
     // DFS (Slide 244)
     void depth_first_traversal() const {
+        // Edge Case 1: Base case for recursion / Empty Tree
+        if (this == nullptr) return;
+
         cout << retrieve() << " "; 
+
         for (Node<Simple_tree*> *ptr = children.head(); ptr != nullptr; ptr = ptr->next()) {
-            ptr->retrieve()->depth_first_traversal();
+            Simple_tree* child_node = ptr->retrieve();
+            
+            // Edge Case 2: Ensure we don't recurse on a null pointer
+            if (child_node != nullptr) {
+                child_node->depth_first_traversal();
+            }
         }
     }
 };
